@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#131417">
+<meta name="description" content="Naija Routes — community road intelligence for Nigeria. Plan routes, see live hazard and fuel reports, and share a safe-arrival trip.">
+<title>Naija Routes — road intelligence for Nigeria</title>
+
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon.svg">
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/">
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <rect width="32" height="32" rx="9" fill="#ffc328"/>
+      <path d="M9 25c2.2-7.5 5-13 7-17" stroke="#131417" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M23 25c-1.1-7.5-2.6-13-4.2-17" stroke="#131417" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M14.4 12.5h3.4M13.2 17h5.6M12 21.5h7.2" stroke="#131417" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+    </svg>
+    <span class="brand-text">
+      <strong>Naija Routes</strong>
+      <span>Road intelligence</span>
+    </span>
+  </a>
+
+  <div class="topbar-spacer"></div>
+
+  <div class="status-strip">
+    <span class="chip optional" id="chipEngine" title="Routing engine in use">
+      <span class="dot"></span><span id="chipEngineText">Starting…</span>
+    </span>
+    <span class="chip optional" id="chipReports" title="Active community reports">
+      <b id="chipReportsCount">—</b> reports
+    </span>
+    <span class="chip" id="chipLive" title="Live connection">
+      <span class="dot" id="liveDot"></span><span id="chipLiveText">Connecting</span>
+    </span>
+    <button class="icon-btn" id="installBtn" hidden title="Install app">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg>
+    </button>
+    <button class="icon-btn" id="aboutBtn" title="About this app">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="panel" id="panel">
+    <div class="mobile-handle" id="mobileHandle"><span></span></div>
+
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-plan" aria-controls="view-plan" aria-selected="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18l6-3 4 3 6-3V6l-6 3-4-3-6 3z"/></svg>
+        Plan
+      </button>
+      <button class="tab" role="tab" id="tab-reports" aria-controls="view-reports" aria-selected="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L2.5 17.3A2 2 0 004.2 20h15.6a2 2 0 001.7-2.7L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        Reports
+      </button>
+      <button class="tab" role="tab" id="tab-trip" aria-controls="view-trip" aria-selected="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 10-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        Trip
+      </button>
+      <button class="tab" role="tab" id="tab-insights" aria-controls="view-insights" aria-selected="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        Insights
+      </button>
+    </nav>
+
+    <!-- ================= PLAN ================= -->
+    <section class="tab-body" id="view-plan" role="tabpanel" aria-labelledby="tab-plan">
+      <div class="field">
+        <label for="fromInput">From</label>
+        <input class="input" id="fromInput" type="text" placeholder="Ikeja, Lagos" autocomplete="off" spellcheck="false">
+        <div class="suggest" id="fromSuggest" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="toInput">To</label>
+        <input class="input" id="toInput" type="text" placeholder="Benin City" autocomplete="off" spellcheck="false">
+        <button class="swap-btn" id="swapBtn" title="Swap start and destination" aria-label="Swap start and destination">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v13m0 0l-3-3m3 3l3-3M17 20V7m0 0l3 3m-3-3l-3 3"/></svg>
+        </button>
+        <div class="suggest" id="toSuggest" hidden></div>
+      </div>
+
+      <div class="input-row">
+        <div class="field" style="margin-bottom:10px">
+          <label for="vehicleSelect">Vehicle</label>
+          <select class="input" id="vehicleSelect"></select>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label for="departInput">Departing</label>
+          <input class="input" id="departInput" type="datetime-local">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="tankRange">Fuel in tank — <span id="tankValue">50%</span></label>
+        <input id="tankRange" type="range" min="5" max="100" value="50" step="5" style="width:100%">
+      </div>
+
+      <button class="btn" id="planBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Plan route &amp; scan hazards
+      </button>
+      <div class="btn-row">
+        <button class="btn ghost small" id="useMyLocationBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+          Use my location
+        </button>
+        <button class="btn ghost small" id="clearRouteBtn">Clear</button>
+      </div>
+
+      <div id="planStatus" class="hint" style="margin-top:12px"></div>
+      <div id="planResults"></div>
+    </section>
+
+    <!-- ================= REPORTS ================= -->
+    <section class="tab-body" id="view-reports" role="tabpanel" aria-labelledby="tab-reports" hidden>
+      <p class="hint tight">Tap anywhere on the map to drop a report, or use the button below. Everything you add is visible to every other driver immediately.</p>
+      <button class="btn" id="addReportBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Add a report
+      </button>
+
+      <div class="section-head" style="margin-top:18px">
+        <h2>Filter</h2>
+        <span class="meta" id="reportsCountMeta"></span>
+      </div>
+      <div class="pills" id="categoryPills"></div>
+
+      <div class="section-head">
+        <h2>Latest</h2>
+        <span class="meta" id="reportsScope">map area</span>
+      </div>
+      <div id="reportsList"></div>
+    </section>
+
+    <!-- ================= TRIP ================= -->
+    <section class="tab-body" id="view-trip" role="tabpanel" aria-labelledby="tab-trip" hidden>
+      <div id="tripActive" hidden></div>
+
+      <div id="tripStart">
+        <div class="section-head"><h2>Share your journey</h2></div>
+        <p class="hint tight">Plan a route first, then start a trip. Anyone with the code sees your live position, progress and expected arrival — and gets flagged if you go overdue.</p>
+        <div class="field">
+          <label for="travellerInput">Your name</label>
+          <input class="input" id="travellerInput" type="text" placeholder="e.g. Chidi" maxlength="40">
+        </div>
+        <div class="field">
+          <label for="tripNote">Note for whoever is watching</label>
+          <textarea class="input" id="tripNote" placeholder="Driving the blue Corolla, will stop at Ore for fuel." maxlength="300"></textarea>
+        </div>
+        <button class="btn" id="startTripBtn" disabled>Start shared trip</button>
+        <p class="hint" id="tripStartHint" style="margin-top:8px">Plan a route on the Plan tab to enable this.</p>
+      </div>
+
+      <div class="section-head"><h2>Watch someone's trip</h2></div>
+      <div class="input-row">
+        <input class="input" id="watchCode" type="text" placeholder="6-character code" maxlength="6" style="text-transform:uppercase; font-family:var(--mono); letter-spacing:.18em">
+        <button class="btn auto" id="watchBtn" style="width:auto; flex:0 0 auto; padding-inline:16px">Watch</button>
+      </div>
+      <div id="watchPanel"></div>
+    </section>
+
+    <!-- ================= INSIGHTS ================= -->
+    <section class="tab-body" id="view-insights" role="tabpanel" aria-labelledby="tab-insights" hidden>
+      <div id="insightsBody"><div class="skeleton" style="height:120px"></div></div>
+    </section>
+  </aside>
+
+  <div id="map"></div>
+
+  <div class="map-tools">
+    <button class="map-tool" id="locateBtn" title="Find my location" aria-pressed="false">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="8"/><path d="M12 1.5v3M12 19.5v3M22.5 12h-3M4.5 12h-3"/></svg>
+    </button>
+    <button class="map-tool" id="reportModeBtn" title="Drop a report pin" aria-pressed="false">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 10-14 0c0 5.5 7 11 7 11z"/><path d="M12 7v5M12 14.5h.01"/></svg>
+    </button>
+    <button class="map-tool" id="heatBtn" title="Show hazard hotspots" aria-pressed="false">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3s5 4.5 5 9a5 5 0 01-10 0c0-4.5 5-9 5-9z"/></svg>
+    </button>
+    <button class="map-tool" id="basemapBtn" title="Switch basemap" aria-pressed="false">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg>
+    </button>
+  </div>
+
+  <div class="map-legend" id="mapLegend">
+    <h4>On the map</h4>
+    <div><span class="swatch" style="background:#e2543c"></span> Serious hazard</div>
+    <div><span class="swatch" style="background:#c97b33"></span> Road condition</div>
+    <div><span class="swatch" style="background:#3f9b6d"></span> Fuel available</div>
+    <div><span class="swatch" style="background:#8b6fd4"></span> Place update</div>
+  </div>
+
+  <div class="map-hint" id="mapHint" hidden>
+    <span id="mapHintText">Tap the map to place your report</span>
+    <button id="mapHintCancel">Cancel</button>
+  </div>
+</div>
+
+<button class="assistant-fab" id="assistantFab" aria-label="Open assistant">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+</button>
+
+<aside class="assistant" id="assistant" hidden>
+  <div class="assistant-head">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danfo)" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <div style="flex:1">
+      <strong>Ask the map</strong>
+      <div class="mode" id="assistantMode">reading live data</div>
+    </div>
+    <button class="icon-btn" id="assistantClose" aria-label="Close assistant">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="assistant-log" id="assistantLog"></div>
+  <div class="assistant-suggest" id="assistantSuggest"></div>
+  <form class="assistant-input" id="assistantForm">
+    <input id="assistantInput" type="text" placeholder="How far from Ikeja to Benin City?" autocomplete="off">
+    <button type="submit" aria-label="Send">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </form>
+</aside>
+
+<div class="toasts" id="toasts"></div>
+
+<!-- ================= REPORT DIALOG ================= -->
+<dialog id="reportDialog">
+  <form class="dialog-box" method="dialog" id="reportForm">
+    <div class="dialog-head">
+      <h3>What's happening here?</h3>
+      <p id="reportLocation">—</p>
+    </div>
+    <div class="dialog-body">
+      <span class="label">Type</span>
+      <div class="type-grid" id="typeGrid"></div>
+
+      <div style="margin-top:14px">
+        <span class="label">How bad is it?</span>
+        <div class="severity-row" id="severityRow">
+          <button type="button" data-severity="1" aria-pressed="false">Minor</button>
+          <button type="button" data-severity="2" aria-pressed="true">Significant</button>
+          <button type="button" data-severity="3" aria-pressed="false">Serious</button>
+        </div>
+      </div>
+
+      <div id="fuelFields" hidden style="margin-top:14px">
+        <div class="input-row">
+          <div class="field" style="margin-bottom:0">
+            <label for="fuelPrice">Price ₦/litre</label>
+            <input class="input" id="fuelPrice" type="number" min="50" max="10000" placeholder="1050">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label for="fuelQueue">Queue</label>
+            <select class="input" id="fuelQueue">
+              <option value="">—</option>
+              <option value="none">No queue</option>
+              <option value="short">Short</option>
+              <option value="moderate">Moderate</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label for="reportLabelInput">Name / landmark <span style="text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input class="input" id="reportLabelInput" type="text" placeholder="e.g. Total station, Ojota" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="reportNoteInput">Details <span style="text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea class="input" id="reportNoteInput" placeholder="How bad, since when, is there a diversion…" maxlength="600"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="reporterInput">Your name <span style="text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input class="input" id="reporterInput" type="text" placeholder="Anonymous" maxlength="40">
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn ghost" id="reportCancel">Cancel</button>
+      <button type="submit" class="btn" id="reportSubmit">Post report</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ================= ABOUT DIALOG ================= -->
+<dialog id="aboutDialog">
+  <div class="dialog-box">
+    <div class="dialog-head">
+      <h3>Naija Routes</h3>
+      <p>Community road intelligence for Nigeria</p>
+    </div>
+    <div class="dialog-body" id="aboutBody"></div>
+    <div class="dialog-foot">
+      <button class="btn" id="aboutClose">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
