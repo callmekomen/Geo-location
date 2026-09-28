@@ -1,0 +1,43 @@
+{
+  "name": "naija-routes",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Community road intelligence for Nigeria \u2014 offline-capable routing, live hazard reports, fuel tracking and safe-arrival trip sharing.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "seed": "node server/db/seed.js",
+    "reset": "node server/db/seed.js --reset",
+    "test": "node --test --test-force-exit 'test/**/*.test.js'",
+    "vendor": "node scripts/vendor-assets.mjs",
+    "postinstall": "node scripts/vendor-assets.mjs",
+    "verify": "node scripts/verify-data.mjs"
+  },
+  "keywords": [
+    "nigeria",
+    "routing",
+    "osrm",
+    "leaflet",
+    "geolocation",
+    "road-safety",
+    "offline-first",
+    "pwa"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "express": "^5.1.0",
+    "leaflet": "^1.9.4"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.4.1"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.1"
+  }
+}

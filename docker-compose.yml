@@ -1,0 +1,25 @@
+services:
+  naija-routes:
+    build: .
+    image: naija-routes:2
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - naija-data:/data
+    environment:
+      NODE_ENV: production
+      SEED_ON_BOOT: "1"
+      # Everything below is optional. The app is fully functional without it.
+      # UPSTREAM_ENABLED: "1"          # use OSRM + Nominatim when reachable
+      # OSRM_URL: https://router.project-osrm.org
+      # NOMINATIM_URL: https://nominatim.openstreetmap.org
+      # ANTHROPIC_API_KEY: ""          # nicer assistant phrasing; answers stay data-driven
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  naija-data:

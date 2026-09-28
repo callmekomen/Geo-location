@@ -1,0 +1,20 @@
+{
+  "name": "Naija Routes — road intelligence for Nigeria",
+  "short_name": "Naija Routes",
+  "description": "Plan routes, see live road hazard and fuel reports, and share a safe-arrival trip.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#131417",
+  "theme_color": "#131417",
+  "categories": ["navigation", "travel", "utilities"],
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Add a report", "short_name": "Report", "url": "/?action=report" },
+    { "name": "Insights", "short_name": "Insights", "url": "/?tab=insights" }
+  ]
+}
