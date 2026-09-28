@@ -268,6 +268,30 @@ function initMapTools() {
   });
 }
 
+/**
+ * <dialog> is not everywhere yet: iOS Safari only got showModal() in 15.4 and
+ * old Android WebViews never will. A lot of this app's users are on exactly
+ * those devices, so fall back to a plain overlay rather than silently doing
+ * nothing when someone taps "Add a report".
+ */
+function ensureDialogSupport() {
+  if (typeof window.HTMLDialogElement === 'function' && typeof window.HTMLDialogElement.prototype.showModal === 'function') {
+    return;
+  }
+  for (const dialog of $$('dialog')) {
+    dialog.showModal = function showModal() {
+      this.setAttribute('open', '');
+      this.classList.add('dialog-fallback');
+    };
+    dialog.close = function close(value) {
+      this.removeAttribute('open');
+      this.classList.remove('dialog-fallback');
+      if (value !== undefined) this.returnValue = value;
+      this.dispatchEvent(new Event('close'));
+    };
+  }
+}
+
 /* -------------------------------------------------------------------- PWA */
 function initPwa() {
   if ('serviceWorker' in navigator) {
@@ -292,6 +316,7 @@ function initPwa() {
 async function boot() {
   loadSession();
   mapview.init('map');
+  ensureDialogSupport();
   initTabs();
   initMapTools();
   initPwa();

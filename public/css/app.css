@@ -498,6 +498,15 @@ dialog {
   border: none; padding: 0; background: transparent; color: var(--text); max-width: 94vw;
 }
 dialog::backdrop { background: rgba(9, 10, 12, 0.72); backdrop-filter: blur(3px); }
+
+/* Fallback for browsers with no <dialog> support (iOS Safari before 15.4,
+   older Android WebViews). app.js adds this class instead of showModal(). */
+dialog.dialog-fallback {
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; inset: 0; z-index: 400; margin: 0; width: 100%; height: 100%;
+  background: rgba(9, 10, 12, 0.72);
+}
+dialog:not([open]) { display: none; }
 .dialog-box {
   width: 430px; max-width: 94vw; background: var(--ink-2); border: 1px solid var(--line);
   border-radius: 18px; box-shadow: var(--shadow-lg); overflow: hidden;

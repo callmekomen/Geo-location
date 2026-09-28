@@ -6,7 +6,7 @@
   <p>
     <img alt="Node" src="https://img.shields.io/badge/node-%E2%89%A520.11-3f9b6d?style=flat-square">
     <img alt="Dependencies" src="https://img.shields.io/badge/runtime%20deps-2-ffc328?style=flat-square">
-    <img alt="Tests" src="https://img.shields.io/badge/tests-69%20passing-3f9b6d?style=flat-square">
+    <img alt="Tests" src="https://img.shields.io/badge/tests-73%20passing-3f9b6d?style=flat-square">
     <img alt="Offline" src="https://img.shields.io/badge/works%20offline-yes-8b6fd4?style=flat-square">
   </p>
 </div>
@@ -184,7 +184,7 @@ public/
 data/
   places.json         the gazetteer
   highways.json       the road graph
-test/                 69 tests, including a headless run of the real UI
+test/                 73 tests, including a headless run of the real UI
 ```
 
 The front end has **no build step**. It is ES modules and one stylesheet,
@@ -194,7 +194,7 @@ nothing is fetched from a CDN at runtime.
 ### Testing
 
 ```bash
-npm test          # 69 tests, ~2 seconds
+npm test          # 73 tests, ~2 seconds
 npm run verify    # checks the bundled map data for broken links and bad coordinates
 ```
 
@@ -203,7 +203,14 @@ with a stubbed Leaflet, then drives it: switches tabs, types into the
 autocomplete, plans a route, opens the report dialog and posts a report, starts
 a trip, loads the guardian page for that trip's code, and asks the assistant a
 question. If an element id drifts out of sync with the JavaScript, the suite
-fails. There is no browser in CI, so this is what stands in for one.
+fails.
+
+`test/leaflet.test.js` runs the same app against the **real** vendored Leaflet
+and asserts on the SVG paths, markers and panes that actually land in the DOM —
+a stub will happily accept a call the real library would reject. It also
+verifies the `<dialog>` fallback used by iOS Safari before 15.4.
+
+There is no browser in CI, so between them these two files stand in for one.
 
 ---
 
